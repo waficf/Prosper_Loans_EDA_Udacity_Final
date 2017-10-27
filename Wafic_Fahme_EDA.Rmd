@@ -1,0 +1,956 @@
+# Proper Loans Explanatory Data Analysis
+### Wafic Fahme
+
+-------------------------------------------------------------------------------
+
+# Introduction
+
+-------------------------------------------------------------------------------
+
+Why Prosper:
+
+Prosper is a leading P2P in the lending industry and it attracted me most \
+because I work in the financial sector and companies like Lending Club and \
+Prosper are interesting to us as we read a lot about them in the media.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+library(GGally)
+
+```
+
+```{r echo=FALSE, Load_the_Data}
+loan_data <- read.csv("/Users/wafic/Github/R/Final_project_R/prosperLoanData.csv"
+                      , na.strings=c("","NA"), as.is=TRUE)
+```
+
+-------------------------------------------------------------------------------
+
+# Univariate Plots
+
+-------------------------------------------------------------------------------
+
+```{r echo=FALSE}
+dim(loan_data)
+```
+
+In the prosper data set provided we have 81 variables and 113,937 \
+observation.
+
+
+```{r echo=FALSE, warning=FALSE, message = FALSE}
+ggplot(aes(x = BorrowerAPR), data = loan_data)+
+  geom_histogram()
+```
+
+We can see that the APR every borrower of the 114,000 loans we have payed.
+
+```{r echo=FALSE, warning=FALSE, message = FALSE}
+ggplot(aes(x = BorrowerRate), data = loan_data)+
+  geom_histogram()
+```
+
+It looks very similar to APR in shape and distribution
+
+```{r echo=FALSE}
+ggplot(aes(x = LoanStatus), data = loan_data)+
+  geom_bar()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+Almost half of the loans are still in process, and around 4,000 of the loans \ 
+have been completed, but we can see almost 11,000 charged off their loans and  \
+almost 5,000 borrowers defaulted on their loans.
+
+```{r echo=FALSE}
+loan_data$LoanStatus <- factor(loan_data$LoanStatus)
+table(loan_data$LoanStatus)
+```
+
+Number of loans in the every status, we have around 12,000 loans of the \
+114,000 observations charged off
+
+```{r echo=FALSE, warning=FALSE, message = FALSE}
+ggplot(aes(x = Term), data = loan_data)+
+  geom_bar()
+```
+
+We can seee that the majority of loans (around 80,000) fall in the middle \
+which gets us to assume that usually loan amounts has to be small to be paid \ 
+in such a short term
+
+Loan Terms
+```{r echo=FALSE}
+table(loan_data$Term)
+```
+We have 3 groups of borrowers here, with around 88,000 in the 36 month period \
+(3yrs) and period and the second popular is 60 month period (5yrs) with 25,000 \
+borrowers and least is the 12 months which I assume is for borrowers of small \
+amounts
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = LoanOriginalAmount), data = loan_data)+
+  geom_histogram(binwidth = 500)
+```
+
+We can see spikes at some specific loan amount like 10,000, 20,000 and 25,000 \
+Lets break it see the amount more clear
+
+Loan Original Amount
+```{r echo=FALSE, warning=FALSE}
+summary(loan_data$LoanOriginalAmount)
+```
+
+We can see that the median of a loan at prosper is 6,500 which confirms our \
+earlier expectations of why the loan terms are mostly 36 month period. \
+The number of borrowers in the Loan Original Amount is right skewed, although \ 
+we can see spikes at amounts: \
+- $4,000 (15,000 borrowers)
+- $5,000 (7,500 borrowers)
+- $10,000 (13,000 borrowers)
+- $15,000 (15,000 borrowers)
+- $20,000 (3,000 borrowers)
+- $30,000 (3,000 borrowers)
+This makes sense because people will take a loan for 15,000 if they want around \
+14,000 and when the figures become bigger we see less and less variations in \ 
+the amounts borrowed unlike the smaller amounts when 1,000 makes a difference \
+for someome wanting to borrow 2,000.
+
+```{r echo=FALSE, Univariate_Plots_5}
+loan_data$ListingCreationYear <- 
+  format(as.Date(loan_data$ListingCreationDate), "%Y")
+
+ggplot(aes(x = ListingCreationYear), data = loan_data)+
+  geom_bar()
+```
+
+If we look at years 2008-2009, we will notice that in 2008 the growth of the \
+number of borrowers stall and then dramatically dropped due to the housing \
+crisis, but then it started growing in a fast pace. In 4 years the number of \
+loans went from 5,000 in 2010 to 35,000 loans in 2013.
+
+
+```{r echo=FALSE, Univariate_Plots}
+ggplot(aes(x = IncomeRange), data = loan_data)+
+  geom_bar()
+```
+
+Around 60,000 borrowers salary ranges between $25,000 and $75,000 but the \
+surprise is in the numbers of borrowers whom salary is $100,000 and above \
+whom are around 17,000 borrowers, I wonder how much they borrowed especially \
+that the amount borrowed median is $6,500, are they the borrowers of the \
+$30,000 we saw earlier.
+
+```{r echo=FALSE}
+ggplot(data = loan_data, aes(x = BorrowerState))+
+  geom_bar()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+We can see that the highest state in terms of prosper borowers is CA which \
+is expected because such P2P startups are still in the early adopters stage \
+and usually states like California tends to have have cultures that are more \
+adoptive of online and new tech ideas.
+
+
+```{r echo=FALSE}
+ggplot(aes(x = EmploymentStatus), data = loan_data)+
+  geom_bar()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+Almost above 90,000 of the borrowers are either employed and very little \
+are un-employed or retired, I wonder how much they have borrowed for how long \
+
+```{r echo=FALSE, warning=FALSE, message = FALSE}
+ggplot(aes(x = MonthlyLoanPayment), data = loan_data)+
+  geom_histogram()
+```
+
+We can see that the majority of borrowers have a monthly loan payment \
+less than $300, even 30,000 of the borrowers pay as low as arounf $150 per \
+month
+
+
+```{r echo=FALSE, warning=FALSE}
+loan_data$CurrentDelinquencies <- factor(loan_data$CurrentDelinquencies,
+                                             levels = c('0','1', '2',
+                                                        '3', '4', '5',
+                                                        '6', '7', '8',
+                                                        '9', '10'))
+
+ggplot(data = loan_data, aes(x = CurrentDelinquencies))+
+  geom_bar()
+```
+
+After factoring and leveling the data, we have almost 90,000 borrowes of our \
+113,000 has no deliquencies whatsoever with around 12,000 whom have 1 account \
+delinquent.
+
+-------------------------------------------------------------------------------
+
+# Univariate Analysis
+
+-------------------------------------------------------------------------------
+
+### What is the structure of your dataset?
+
+The data set has 81 variables, but I have chosen these to work with for my EDA.
+
+* ListingCreationDate:	The date the listing was created.
+
+* Term:	The length of the loan expressed in months.
+
+* LoanStatus:	The current status of the loan: Cancelled,  Chargedoff, Completed,
+Current, Defaulted, FinalPaymentInProgress, PastDue. The PastDue status will be 
+accompanied by a delinquency bucket.
+
+* BorrowerAPR:	The Borrower's Annual Percentage Rate (APR) for the loan.
+
+* BorrowerRate:	The Borrower's interest rate for this loan. 
+
+* ProsperRating (Alpha):	The Prosper Rating assigned at the time the listing 
+was created between AA - HR.  Applicable for loans originated after July 2009.
+
+* ProsperScore:	A custom risk score built using historical Prosper data. 
+The score ranges from 1-10, with 10 being the best, or lowest risk score.  
+Applicable for loans originated after July 2009.
+
+* CreditScoreRangeUpper:	The upper value representing the range of the 
+borrower's credit score as provided by a consumer credit rating agency. 
+
+* AmountDelinquent:	Dollars delinquent at the time the credit profile was pulled.
+
+* BankcardUtilization:	The percentage of available revolving credit that is 
+utilized at the time the credit profile was pulled.
+
+* DebtToIncomeRatio:	The debt to income ratio of the borrower at the time the 
+credit profile was pulled. This value is Null if the debt to income ratio is 
+not available. This value is capped at 10.01 (any debt to income ratio larger 
+than 1000% will be returned as 1001%).
+
+* IncomeRange:	The income range of the borrower at the time the listing was 
+created.
+
+* StatedMonthlyIncome:	The monthly income the borrower stated at the time the 
+listing was created.
+
+* LoanOriginalAmount:	The origination amount of the loan.
+
+* Investors:	The number of investors that funded the loan.
+
+* MonthlyLoanPayment	The scheduled monthly loan payment.
+
+* BorrowerState:	The two letter abbreviation of the state of the address of 
+the borrower at the time the Listing was created.
+
+Create a new dataframe with the above variables
+```{r echo=FALSE, create_new_data_frame}
+prosper_loans <- select(loan_data, c(ListingCreationDate, Term, LoanStatus, 
+                                     BorrowerAPR, 
+                                     BorrowerRate, ListingKey, MonthlyLoanPayment,
+                                     ProsperRating..Alpha.,ProsperScore, 
+                                     BorrowerState,
+                                     CreditScoreRangeUpper, AmountDelinquent,
+                                     BankcardUtilization,DebtToIncomeRatio, 
+                                     IncomeRange, StatedMonthlyIncome,
+                                     LoanOriginalAmount, Investors))
+```
+
+
+```{r echo=FALSE}
+prosper_loans$LoanStatus <- factor(prosper_loans$LoanStatus,
+                                   levels = c('Current', 'Completed',
+                                              'Chargedoff','Cancelled',
+                                              'Defaulted', 'FinalPaymentInProgress',
+                                              'Past Due (1-15 days)',
+                                              'Past Due (16-30 days)',
+                                              'Past Due (31-60 days)',
+                                              'Past Due (61-90 days)',
+                                              'Past Due (91-120 days)',
+                                              'Past Due (>120 days)'))
+
+prosper_loans$Term <- factor(prosper_loans$Term, levels = c('12', '36', '60'))
+
+prosper_loans$ProsperRating..Alpha. <- factor(prosper_loans$ProsperRating..Alpha.,
+                                              levels = c("AA", "A", "B", "C", "D",
+                                                         "E", "HR"))
+
+prosper_loans$IncomeRange <- factor(prosper_loans$IncomeRange, levels = 
+                                        c("Not employed", "$0", "$1-24,999", 
+                                          "$25,000-49,999",
+                                          "$50,000-74,999", "$75,000-99,999",
+                                          "$100,000+"
+                                          ))
+
+prosper_loans$BorrowersGroups <- ifelse(prosper_loans$LoanStatus == "Current" |
+                                        prosper_loans$LoanStatus == "Completed" |
+                                        prosper_loans$LoanStatus == "Past Due (1-15 days)" |
+                                        prosper_loans$LoanStatus == "Past Due (16-30 days)"|
+                                        prosper_loans$LoanStatus ==  "FinalPaymentInProgress",
+                                        "Non-Delinquent", "Delinquent")
+
+prosper_loans$BorrowersGroups <-factor(prosper_loans$BorrowersGroups, levels = 
+                                            c("Non-Delinquent", "Delinquent"))
+
+prosper_loans$ListingCreationYear <- 
+  format(as.Date(prosper_loans$ListingCreationDate), "%Y")
+
+prosper_loans <- select(prosper_loans, -c(ListingCreationDate))
+
+names(prosper_loans)
+```
+
+
+```{r echo=FALSE}
+levels(prosper_loans$LoanStatus)
+```
+
+I will group Current, Completed, Past Due (1-15 days), Past Due (16-30 days) \
+and "FinalPaymentInProgress" \
+as Non-Delinquent because a borrower who is only few days late on his or her \
+payment might have reasons that are quite random an not covered in the data \
+we have. Then I will group all the 8 levels into delinquent borrowers \
+because for example a borrower whom is 90 days past due is probably gonna \ 
+cancel or default on his loan and I believe they might also be delinquent \
+elsewhere as we will try to investigate via correlating the status with the \ 
+number of delinquencies a borrower has.
+
+```{r echo=FALSE}
+ggplot(aes(x = BorrowersGroups), data = prosper_loans)+
+  geom_bar()
+```
+
+
+```{r echo=FALSE}
+str(prosper_loans)
+```
+
+### What is/are the main feature(s) of interest in your dataset?
+I was suprised to see a varying APR levels for every borrower and I was\
+curious to undertsand why the difference. \
+I want investigate why APR levels changes from loan to another, what are the \
+factors that get me as a borrower to have a lower APR at prosper. I hope the \
+variables will help me understand the reason beind the difference in rates. \
+
+### What other features in the dataset do you think will help support your \
+investigation into your feature(s) of interest?
+We will look into the financial status of the borrower thus the borrower \
+EmploymentStatus, CreditScore, AmountDelinquent, BankcardUtilization. Also, \ 
+we will look at his status with Prosper.com, what his ProsperScore is, \
+Term and ListingCreationYear.
+
+### Did you create any new variables from existing variables in the dataset?
+
+I created two variables:
+
+* ListingCreationYear: This is the year the loan was created, to consolidate \
+loans as they are currently listed in full date.
+* BorrowersGroups: This is the variable meantioned earlier that groups \
+borrowes into two groups, where Current, Completed, Past Due (1-15 days) and \ 
+Past Due (16-30 days) are Non-Delinquent and the rest are delinquent borrowers.
+
+
+### Of the features you investigated, were there any unusual distributions? \
+Did you perform any operations on the data to tidy, adjust, or change the form \
+of the data? If so, why did you do this?
+
+Knowing that every observation is a loan record, I run the below code to \
+notice that there are some duplicated that needs to be removed.
+
+```{r}
+length(prosper_loans$ListingKey)
+length(unique(prosper_loans$ListingKey))
+
+# Removed all the duplicate loans listings
+prosper_loans <- prosper_loans[!duplicated(prosper_loans$ListingKey), ]
+length(prosper_loans$ListingKey)
+```
+
+```{r echo=FALSE}
+# Remove variables I will not use
+prosper_loans <- select(prosper_loans, -c(ListingKey))
+prosper_loans <- select(prosper_loans, -c(LoanStatus))
+dim(prosper_loans)
+```
+
+
+Ended up with 17 variables and 113,066 observations to be investigated 
+
+-------------------------------------------------------------------------------
+
+# Bivariate Plots Section
+
+-------------------------------------------------------------------------------
+
+```{r echo=FALSE, warning=FALSE, message = FALSE}
+# sample 10,000 loans from the data set
+#prosper_loans_subset <- select(prosper_loans, c(Term, BorrowerAPR, 
+ #                                    BorrowerRate,
+  #                                   ProsperRating..Alpha.,ProsperScore,
+   #                                  CreditScoreRangeUpper, AmountDelinquent,
+    #                                 BankcardUtilization,DebtToIncomeRatio, 
+     #                                StatedMonthlyIncome, LoanOriginalAmount))
+#set.seed(339487731)
+#prosper_loans_samp <- prosper_loans_subset[sample(1:length(prosper_loans$BorrowerAPR), 10000), ]
+#ggpairs(prosper_loans_samp,
+#  lower = list(continuous = wrap("points", shape = I('.'))),
+#  upper = list(combo = wrap("box", outlier.shape = I('.'))))
+```
+
+
+```{r echo=FALSE,  warning=FALSE, message = FALSE}
+ggcorr(prosper_loans[, 0:17], label = TRUE)
+```
+
+Looking at the correlation coofecient in the relationship between every \
+varaible we are investigating in Prosper, we can see that some variables like \ 
+Borrower APR and Borrower Rate are highly correlated but if we think of it, we \ 
+know for a fact that these are identical variables and the correlation is due \
+to the fact that they are identical. We can also see a high correlation \
+between loan amount and the monthly payment which makes sence as the payments \
+increase with the size of the loan. We can also see a rather strong negative \
+correlation between the Borrower AP and the Prosper Score which can be a start \
+to our hypothesis regarding that Prosper gives high APR scores to risky \
+customers.
+
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = BorrowersGroups, y = BorrowerAPR), data = prosper_loans)+
+  geom_boxplot()
+```
+
+In trying to understand the variation of the APR between borrowers, I \
+started with the delinquent vs non-delinquent and its obvious that the \
+delinquent group pages on average a much higher rate of 25% vs 20% for the \ 
+non-delinquent group and since APR rates are imposed at the beginning of the \
+loan, this gets us to guess the prosper might have believed that these \
+borrowers are riskier.
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = BorrowerRate, y = BorrowerAPR), data = prosper_loans)+
+  geom_point(alpha=1/10)
+```
+
+This make sense because we know that borrower rate and APR are complimentary \
+variables, but what we dont see is a perfect correlation between the 2 \
+variables, for example a borrower can pay a rate of 20% and an APR between \
+20% and 30% which is quite a difference. We can also spot some outlier paid \
+borrower rate less than 10% but an APR of almost 22%.
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = ListingCreationYear, y = BorrowerAPR), data = prosper_loans)+
+  geom_boxplot()
+```
+
+Looking on how the APR changed over time, we see that the mean was high \
+then dropped then reached its peak in 2011 then dropped to its lowest rate \ 
+ever in 2014. I have a hypothesis for it and it has to do that during 2008 and \ 
+2011 where the increase in APR is visible, due to the housing crisis the \
+borrowers where riskier, for that Prosper had to increase its APR to protect \
+its investors and maybe even attract investors as these where tough times.
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = LoanOriginalAmount, y = BorrowerAPR), data = prosper_loans)+
+  geom_point(alpha = 1/5)
+```
+
+I expected this plot to have a linear relation, but what I can see is that \
+a borrower can of an amount can have a huge variation in his/her APR.\
+We can vertical lines due to the nature of the loan amounts as they are usually\
+complete numbers like 20,000 or 10,000 etc but the numbers between them I \
+guess is due to the fact that the loan was not fully funded by investors.\
+For example, if you want to borrow $25,000 you might pay as low as 5% and as \
+high as 35% for the same loan amount
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = Term, y = BorrowerAPR), data = prosper_loans)+
+  geom_boxplot()
+```
+
+From this plot we can see that the 3 terms have very similar median, and \
+even in the same term we can see that the APR can range from 15% to 30% on the \
+36 month term (the most popular term of 80,000 borrowers)
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = ProsperRating..Alpha., y = BorrowerAPR), data = prosper_loans)+
+  geom_boxplot()
+```
+
+The Prosper rating is the rating given day one for the loan, which I am not \
+sure if it affects the APR or vise versa but what I can see it a strong \
+relationship between this categorical variable and the APR, because as the \ 
+loan becomes riskier(AA least HR highest) the average APR rate jumps from under \
+10% to as high as 35% although this graph is full of outliers. \ 
+If we look at the lowest APR rate for HR (riskiest borrowers) we can see an APR \
+of 20% which is very similar to the median of the much less risky "B" rated \
+borrowers.
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = IncomeRange, y = BorrowerAPR), data = prosper_loans)+
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+One of the most obvious variables will be a borrower salary, and it is as \
+anticipated, borrowers of low salaries have a median of 25%, while we can see \
+that the higher a person salary the lower he get in APR on average, but I am \
+again suprised with this outlier of 100,000+ salary who had an APR of 40%.
+
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = StatedMonthlyIncome, y = BorrowerAPR), data = prosper_loans)+
+  geom_point()
+```
+
+> We can see this borrower here, he has a salary above 1,500,000 per month and
+unless Bill Gates is asking for a prosper loan, I believe this is a user entry 
+error or maybe a data wrangling issue. For that I will mutate salaries above 
+250,000 and replot the above.
+
+Changing salaries above 200,000 by dividing them by 100
+```{r echo=FALSE}
+prosper_loans$StatedMonthlyIncome <- ifelse(prosper_loans$StatedMonthlyIncome > 200000,
+                                            prosper_loans$StatedMonthlyIncome/100,
+                                            prosper_loans$StatedMonthlyIncome)
+summary(prosper_loans$StatedMonthlyIncome)
+
+```
+
+Plotting the monthly salaries after doing the above treatment that removed
+most of the outliers
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = StatedMonthlyIncome, y = BorrowerAPR), data = prosper_loans)+
+  geom_jitter(alpha = 2/5, shape = 21, fill = I("#FFA500"))+
+  scale_x_log10()
+```
+
+Since the data is concentrated to the left, I experimented it with log10 and \
+now the data plot is more clear, we can't still see the relationship between \
+the monthly salary and the APR levels, but its now clear that the majority of \
+borrowers are in the same financial situation with average salary of 5,000. \
+We can see a 2 vertical lined on zero and near zero, and I guess this is either \
+missing data or non-employed borrowers. We can see that themost popular APR \
+is of 35% as its spread along the monthly salaries from 100 to 12,000.
+
+```{r echo=FALSE, warning=FALSE, message = FALSE}
+ggplot(aes(x = DebtToIncomeRatio, y = BorrowerAPR), data = prosper_loans)+
+  geom_point()
+```
+
+Expected a linear relation here as well, but I can conclude that most borrowers \
+are under 1% DTI and some are in the 10% DTI but lets replot it with log10 to \
+clear the congestion of points on the left
+
+```{r echo=FALSE, warning=FALSE, message = FALSE}
+ggplot(aes(x = DebtToIncomeRatio, y = BorrowerAPR), data = prosper_loans)+
+  geom_jitter(alpha = 2/5, shape = 21, fill = I("#FFA500"))+
+  scale_x_log10()
+```
+
+Similar to amount borrowed we can see that DTI is plotting vertical lines \
+that represent the ratio, which is highly concentrated between 0.2 and 0.3 \
+but here we can't say that DTI is pushing the APR high, because on the same \
+DTI, for example 0.01, we can see APR ranging from 5% to 40% and the same on \
+almost every DTI level.
+
+DTI interquartile range
+```{r echo=FALSE}
+summary(prosper_loans$DebtToIncomeRatio)
+```
+
+```{r echo=FALSE, warning=FALSE, message = FALSE}
+ggplot(aes(x = BankcardUtilization, y = BorrowerAPR), data = prosper_loans)+
+  geom_jitter(alpha = 2/5, shape = 21, fill = I("#FFA500"))+
+  scale_x_log10()
+```
+
+From this plot we see little evidence that the utilization of the bank card \
+have any effect on the borrower APR because as we can see that the APR ranges \ 
+from 5% to 40% on every single bank card utilization ratio, but we can also \
+notice that there is almost little borrowes above the 
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = MonthlyLoanPayment, y = BorrowerAPR), data = prosper_loans)+
+  geom_point(alpha = 1/100)+
+  scale_x_log10()
+```
+
+```{r}
+summary(prosper_loans$MonthlyLoanPayment)
+```
+
+With 90% of loan payment between $130 and $370 per month, we can see that there \
+is something going on in this plot, we dont see straight lines as we did in \
+other variables and we can see on higher monhtly payments the APR doesnt go \
+beyond 25% although we cant confirm because data there is little.
+
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = AmountDelinquent, y = BorrowerAPR), data = prosper_loans)+
+  geom_jitter(alpha = 2/5, shape = 21, fill = I("#FFA500"))+
+  scale_x_log10()
+```
+
+In the amount delinquent for borrowers we don't see a relationship with the \ 
+borrower APR.
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = BorrowerState, y = BorrowerAPR), data = prosper_loans)+
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+We can see some states median dropping below 20% and some above 20% but in \
+general we dont see extreme APR rates in any of the states and those that might \
+look low are mainly due to the smal number of loans so its difficult to reach \
+conclusions.
+
+```{r echo=FALSE}
+ggplot(aes(x = Term, y = LoanOriginalAmount), data = prosper_loans)+
+  geom_boxplot()
+```
+
+Looking at the 3 terms of loans provided, we can see a relationship between \
+the size of the loan and the term of the loan which makes sense because \
+usually bigger loans need more time to be paid which explains the difference \
+in median which is $5,000 for the 36 month term and more than double $11,000.
+
+```{r echo=FALSE}
+ggplot(aes(x = BorrowersGroups, y = LoanOriginalAmount), data = prosper_loans)+
+  geom_boxplot()
+```
+
+When comparing the delinquent borrowers to those whom are non-delinquent, we \ 
+can see that delinquent borrowers median loan amount is $5,000 compared to\
+around $7,000 for the the non-delinquent. We can also notice that the \
+delinquent borrowers amount borrowered are less spread than non-delinquent \ 
+with shorter tail and even the outliers are much conservative than the\
+non-delinquent group.
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(y = BorrowerAPR, x = IncomeRange), data = subset(prosper_loans, IncomeRange != "NA" & IncomeRange != "$0"))+
+  geom_boxplot(aes(color= IncomeRange))+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+After removing both the NA salaries and the zero salaries, \
+we can see that the high earners have the lowers median APR of 18% and even \
+the range of APR max is lower than that of the not-employed and lower salaries.\
+We can see that the median of APR is dropping as salary increases assuring \ 
+that a person's financial security is key to him or her getting a lower \
+or higher APR.
+
+```{r}
+cor.test(prosper_loans$BorrowerRate, prosper_loans$BorrowerAPR, method = c("pearson"))
+```
+
+We can see the strong correlation between the 2 identical variables Borrower \
+Rate and APR
+
+```{r}
+cor.test(prosper_loans$ProsperScore, prosper_loans$BorrowerAPR, method = c("pearson"))
+```
+
+We the negative correlation between a Borrower Prosper rating and the APR \
+he or she gets because as the rating goes higher the APR decreases for low \
+risk customers
+
+
+-------------------------------------------------------------------------------
+
+# Bivariate Analysis
+
+-------------------------------------------------------------------------------
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. How did the feature(s) of interest vary with other features in \
+the dataset?
+
+We can't see a clear relationship between most variables and the APR rate,\
+but we know that Prosper tends to increase the borrowes APR if they think they \ 
+are risky borrowers because when grouping delinquent and non-delinquent \
+borrowers we noticed that there is 5% more APR on average between the 2 groups.\
+This is clear when looking at the Prosper Rating given to the borrower day 1 \
+and his/her APR. \
+Also, we can see a relationship between the borrower APR and Income range, \
+although couldn't see it with monthly salary but in the income range its clear \ 
+that the higher the salary the lower the APR. \
+Most important when it comes to the risky borrowers get a higher APR is in the \
+APR distribution over years, because when the economy was bad, we saw high \
+APR levels that went back to normal during the years after 2009.
+Also, we can see that Interest rate has 99% correlation but only because these \
+are almost the same variables so we can't consider it a correlation to be \
+studied.
+
+### Did you observe any interesting relationships between the other features \
+(not the main feature(s) of interest)?
+
+We can see a relationship between the size of the loan and the loan term, \
+because usually bigger loans tends to need more time to be paid but more \
+interesting is that Prosper not only charged the delinquent borrowers with \
+higher APR, they even gave them loans of smaller amounts, because as I noted \ 
+in the above plot we can see that delinquent borrowers median loan amount is \
+5,000 compared to around 7,000 for the the non-delinquent. \
+Also we can see a rather strong negative correlation a borrower APR and the \
+Prosper rating which proves that APR is used by Prosper to protect themselves \
+against risky customers.
+
+### What was the strongest relationship you found?
+
+The strongest was between the Borrower APR and the Intereste Rate, but also \
+we can see a relationship between the borrower status and the APR and also \
+between his/her status and the size of the loan they will borrow and \
+definitely the APR levels go down as salary increases making the borrower seem \
+more secure.
+
+-------------------------------------------------------------------------------
+
+# Multivariate Plots Section
+
+-------------------------------------------------------------------------------
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(y = BorrowerAPR,  x = ListingCreationYear), data = subset(prosper_loans, IncomeRange != "NA" & IncomeRange != "$0"))+
+  geom_boxplot(aes(fill= IncomeRange))
+```
+
+
+```{r echo=FALSE, warning=FALSE}
+table(prosper_loans$IncomeRange)
+```
+
+There are lots of things we can see in this plot, we can see that from 2013, \
+prosper stopped accepting not-employed borrowers whom APR was the highest among
+all groups. We can see that after 2011, APR levels for all groups started 
+getting lower to reach its lowest levels in 2014.
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = BorrowerAPR), data = subset(prosper_loans, ProsperRating..Alpha. != "NA"))+
+  geom_density(aes(color= ProsperRating..Alpha.))
+```
+
+This is amazing, we can see very clear that Prosper penalizes risky borrowers \
+with high levels of APR, all over the plot HR (High Risk) is never visible \
+until we reach 35%, and I believe these are the not-employed introduced in \
+2013.\
+lets zoom in on the levels to see how they are distributed \
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = BorrowerAPR), data = subset(prosper_loans, ProsperRating..Alpha. != "NA"))+
+  geom_density(aes(color= ProsperRating..Alpha.))+
+  ylim(0, 50)
+```
+
+After zooming in, we can see that almost some levels don't overlap, the "AA" \
+sits on the left side with most of the borrowers getting less than 10%, \
+then the "A" between 10% and 15% then the B between 15% and 20%.
+
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = BorrowerRate, y = BorrowerAPR), data = prosper_loans)+
+  geom_boxplot()+
+  facet_wrap(~BorrowersGroups)
+```
+
+The difference is clear between the borrower APR and Interest rate between \
+delinquent borrowers and non-delinquent, so if Prosper think you are riskier \
+you will get a higher APR.
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(y = BorrowerAPR, x = BorrowerRate, fill= ProsperRating..Alpha.), data = subset(prosper_loans, ProsperRating..Alpha. != "NA"))+
+  stat_ellipse(geom = "polygon")
+```
+
+When plotting using confidence ellipses we can see the seperation between \
+the different groups of borrowers rating, its clear that the low rik "AA" \
+borrowers almost dominate the lowest Borrower Rate/APR an then the graph \
+goes through different groups accordingly, we can see that the more a borrower \
+is flagged as risky, the more we can see the groups intersect. We can also \
+notice that the highest risk borrower "HR" is a very small group almost not \
+visible on the plot.
+ 
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = BorrowerAPR), data = subset(prosper_loans, ProsperRating..Alpha. != "NA"))+
+  geom_density(aes(fill= Term), alpha = 1/3)+
+  facet_wrap(~BorrowersGroups)
+``` 
+
+We can see lots of interesting things here, Its now clear that Prosper \ 
+borrowers whom ended up to be delinquent where in the first place risky as \
+they have the majority of the skyrocket APR levels. We can also see that the \ 
+60 month term borrowers had a lower APR than the popular 36 month term \
+borrowers in both groups.
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = BorrowerAPR), data = subset(prosper_loans, ListingCreationYear > 2010 & ListingCreationYear < 2015))+
+  geom_density(aes(color=ListingCreationYear))
+```
+
+We know that the bulk of the borrowers are from years 2011 till 2013, for that \
+the above years are only visible in the plot. \
+Looking at the years after the financial crisis we can see the difference \
+in the distribution of the Borrower APR expecially in 2013 when it started \
+to become normal where almost half of the loans are above 20% and half \
+almost below unlike 2011 where we see spikes in the density at 30% and 40% \ 
+APR and same for 2012 but less moderate.\
+I was reluctant to add 2014 because the data is not complete but if we look at \ 
+what data we have now, it shows that APR dropped and is becoming skewed to the \
+right where the majority of loans are in the 15% APR range which is either \
+due to Prosper attracting people with better ratings or the general economical \
+situation is recovering.
+
+
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = ProsperRating..Alpha., y = BorrowerRate), data = subset(prosper_loans, ProsperRating..Alpha. != "NA"))+
+  geom_boxplot()+
+  facet_wrap(~ListingCreationYear)
+```
+
+We can see how much APR levels has dropped if we look, we can \
+see that the are no more outliers in 2014 and we can see that even the HR \
+rated borrowers dont exceed at max the 30% APR, we can also notice that the \ 
+IQR was big on every level but now in 2014 it has shrinked \
+ 
+-------------------------------------------------------------------------------
+
+# Multivariate Analysis
+
+-------------------------------------------------------------------------------
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. Were there features that strengthened each other in terms of \
+looking at your feature(s) of interest?
+
+It is clear more that a person income range affects the APR he or she get at \
+Prosper. We can also see that the borrower rating affects the APR which \
+gets us to conclude that the difference between the APR and interest is mainly \
+due to the borrower riskiness.
+
+### Were there any interesting or surprising interactions between features?
+
+The interesting part was the APR levels dropped over the years which is \
+something quite odd especially with financial institutes whom tend to usually \
+add fees and interest rates as they grow bigger.
+
+The surprising was the introduction of the not-employed people in 2013 with \
+skyrocket APR.
+
+------
+
+-------------------------------------------------------------------------------
+
+# Final Plots and Summary
+
+-------------------------------------------------------------------------------
+
+### Plot One
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(y = BorrowerAPR, x = IncomeRange), data = subset(prosper_loans, IncomeRange != "NA" & IncomeRange != "$0"))+
+  geom_boxplot(aes(color= IncomeRange))+
+  labs(x = "Income Range [$]", y = "Borrower APR [%]")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+### Description One
+
+I chose this to be the first because it might have explained maybe most of the \
+variation in APR that is not explained by the interest rate. This here I \
+believe affects the initial prosper rating. It is clear when the APR levels \ 
+starts to go very high when the borrower monthly salary drops which can be \
+double between a high earner and someone denoted as not-employed which allows \ 
+us to confirm that the financial security of a borrowers highly influences \
+his or her APR level.
+
+
+### Plot Two
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = BorrowerAPR), data = subset(prosper_loans, ProsperRating..Alpha. != "NA"))+
+  geom_density(aes(color= ProsperRating..Alpha.))+
+  ylim(0, 50)+
+  labs(x = "Borrower APR [%]")
+```
+
+### Description Two
+
+This plot was very supporting because as we can see that the prosper rating \
+given day 1 to the borrower affects the APR level he or she get, we can almost \
+see exclusivity for the borrowers rating levels as if they are separate bin. \
+For example the AA ratings never go beyond 10% in APR while the C rating sits \
+between the 15% and the 20% as for the HR, we now know that these are \
+"not-employed" borrowers from 2013 whom where mostly given APR levels of 35% \
+as they are risky and might become delinquent.
+
+
+### Plot Three
+```{r echo=FALSE, warning=FALSE}
+ggplot(aes(x = BorrowerAPR), data = subset(prosper_loans, ListingCreationYear > 2010 & ListingCreationYear < 2015))+
+  geom_density(aes(color=ListingCreationYear))+
+  labs(x = "Borrower APR [%]")
+```
+
+### Description Three
+
+I wanted to concentrate on this because it was surprising that the APR level \
+dropped and is still dropping at Prosper, I believe this can be due to many \
+reasons but my theories are that probably Prosper is attracting less riskier \
+highly paid borrowers (although they gave loans to non-employed borrowers in \
+2013) and  due to the recovery of the US economy after the housing crisis in \
+2008-2009.
+
+
+------
+
+# Reflection
+
+I was interested in this dataset because I was interested in Prosper as a \ 
+company but when looking at the number of variables and since there are 81, \ 
+I was reluctant at first because there are too many to be analyzed and even \
+choosing few variables wasn't easy, I had to repeat the project 3 times before \ 
+finding a problem that was unique, interesting and which I can choose adequate \
+number of variables but not too many.
+
+Also the plotting wasn't easy as the size of the data is big, and mostly was \ 
+skewed which caused plots to be useless, even I was not satisfied with with \
+ggpair plot because the variables that I chose was too much to be plotted at \
+once.
+
+Maybe I should have studied the riskiness of the borrower rather than the \
+APR difference. It started with me because I thought APR was the same for all \
+borrowers, but when I came across the difference in APR I wanted to know why, \
+to be honest I was dreaming of this highly correlated continuous variables that \
+will popup from somewhere and just explain it all but it seems in real life EDA \ 
+isn't straight forward. 
+
+I believe I have concluded that the borrower salary has \
+a huge affect on the APR he or she gets but I don't think this alone helps \
+because as we can see APR levels dropped over the years.
+I believe Prosper has system that measures the borrower riskiness because as \
+we saw over and over again, borrowers who are delinquent tended to have higher \ 
+APR levels.
+
+Now when I look at the variables and the prosper dataset I feel very familiar \
+with it and I now have an idea how loans work, I know what affects the amount \
+or the APR levels, also I know that its not only for low income borrowers, I \
+also know that it has dramatically changed over time and that the average \
+borrowerd amount is around $7,000.
+
+Maybe if we add how salaries changed over the years, this could have been quite \
+an idea, because there we can know if Prosper is attracting more secure \
+borrowers or is it the economy, also if we can add a benchmark for what APR \
+levels other P2P companies are providing and even what bank are providing in \
+terms of micro loans. 
+
+I think there are lots of issues that can be investigated and even after \
+I feel I left lots of issues that could have been investigated especially how \ 
+Prosper rates its borrowers upon approval of the loan which came late to me \
+when I was almost done with the APR analysis and couldn't go back to start \
+again for now.
+
+
+
+
+
